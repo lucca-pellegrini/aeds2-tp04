@@ -47,8 +47,7 @@ public class HashDiretaReserva
 
         // Salva o log.
         try (PrintStream log = new PrintStream(LOG)) {
-            log.println(MATRICULA + "\t" + tempoExecucao + "\t" +
-                        Pokemon.getNumComparacoes());
+            log.println(MATRICULA + "\t" + tempoExecucao + "\t" + Tabela.getNumComparacoes());
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -64,12 +63,14 @@ interface Nomeavel
 
 class Tabela<T extends Comparable<T> & Nomeavel>
 {
-    final T[] tab;
-    final int tamTab;
-    final int tamReserva;
-    int idxReserva;
+    private final T[] tab;
+    private final int tamTab;
+    private final int tamReserva;
+    private int idxReserva;
 
-    // É preciso receber a classe de T como parâmetro por reflexão para
+    private static int numComparacoes = 0; // Para contar comparações.
+
+	// É preciso receber a classe de T como parâmetro por reflexão para
     // podermos alocar um arranjo estático de tipo genérico. Trata-se de uma
     // limitação da JVM.
     public Tabela(Class<T> clazz)
@@ -103,9 +104,11 @@ class Tabela<T extends Comparable<T> & Nomeavel>
 
         if (tab[hash] != null) {
             if (tab[hash].getName().equals(chave)) {
+                ++numComparacoes;
                 res = hash;
             } else {
                 for (int i = tamTab; i < idxReserva; ++i) {
+                    ++numComparacoes;
                     if (tab[i].getName().equals(chave)) {
                         res = i;
                         i = idxReserva;
@@ -131,6 +134,14 @@ class Tabela<T extends Comparable<T> & Nomeavel>
 
         return acc % tamTab;
     }
+
+    public static int getNumComparacoes() {
+		return numComparacoes;
+	}
+
+	public static void setNumComparacoes(int numComparacoes) {
+		Tabela.numComparacoes = numComparacoes;
+	}
 }
 
 class GerenciadorPokemons
@@ -183,8 +194,6 @@ class Pokemon implements Comparable<Pokemon>, Cloneable, Nomeavel
     private double weight, height;
     private boolean isLegendary;
     private LocalDate captureDate; // Os métodos de Date são deprecados.
-
-    private static int numComparacoes = 0; // Para contar comparações.
 
     public Pokemon()
     {
@@ -301,7 +310,6 @@ class Pokemon implements Comparable<Pokemon>, Cloneable, Nomeavel
     // Ordena Pokémon por nome.
     @Override public int compareTo(Pokemon outro)
     {
-        ++numComparacoes;
         return this.getName().compareTo(outro.getName());
     }
 
@@ -432,16 +440,6 @@ class Pokemon implements Comparable<Pokemon>, Cloneable, Nomeavel
     public void setCaptureDate(LocalDate captureDate)
     {
         this.captureDate = captureDate;
-    }
-
-    public static int getNumComparacoes()
-    {
-        return numComparacoes;
-    }
-
-    public static void setNumComparacoes(int numComparacoes)
-    {
-        Pokemon.numComparacoes = numComparacoes;
     }
 
     // Tipos de Pokémon.
