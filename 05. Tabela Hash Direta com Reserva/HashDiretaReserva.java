@@ -90,16 +90,10 @@ class Tabela<T extends Comparable<T> & Nomeavel>
     {
         final int hash = hash(x);
 
-        System.out.println("inserindo " + x);
-
         if (tab[hash] == null)
             tab[hash] = x;
-        else if (idxReserva < tamReserva)
+        else if (idxReserva < tamTab + tamReserva)
             tab[idxReserva++] = x;
-        else
-            throw new ArrayIndexOutOfBoundsException("Área de reserva cheia.");
-
-        System.out.println("Inserido!");
     }
 
     public int pesquisar(String chave)
