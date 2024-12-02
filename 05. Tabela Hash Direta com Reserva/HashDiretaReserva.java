@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class HashDiretaReserva
     {
         String arquivo = (args.length > 0) ? args[0] : DEFAULT_DB;
         List<Pokemon> pokemon = new GerenciadorPokemons(arquivo).getPokemons();
-        Tabela<Pokemon> tabela = new Tabela<>();
+        Tabela<Pokemon> tabela = new Tabela<>(Pokemon.class);
 
         // Lê da entrada padrão.
         try (Scanner sc = new Scanner(System.in)) {
@@ -68,17 +69,20 @@ class Tabela<T extends Comparable<T> & Nomeavel>
     final int tamReserva;
     int idxReserva;
 
-    public Tabela()
+    // É preciso receber a classe de T como parâmetro por reflexão para
+    // podermos alocar um arranjo estático de tipo genérico. Trata-se de uma
+    // limitação da JVM.
+    public Tabela(Class<T> clazz)
     {
-        this(21, 9); // Valores padrão do enunciado.
+        this(clazz, 21, 9); // Valores padrão do enunciado.
     }
 
-    @SuppressWarnings("unchecked") // Necessário para o array de tipo genérico.
-    private Tabela(int capacidade, int reserva)
+    @SuppressWarnings("unchecked")
+    private Tabela(Class<T> clazz, int capacidade, int reserva)
     {
         tamTab = capacidade;
         tamReserva = reserva;
-        tab = (T[]) new Object[capacidade + reserva]; // Malloc da Shopee™.
+        tab = (T[])Array.newInstance(clazz, capacidade + reserva);
         idxReserva = capacidade;
     }
 
