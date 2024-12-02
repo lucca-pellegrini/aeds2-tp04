@@ -16,7 +16,8 @@ public class Alvinegra
     private static final long MATRICULA = 842986;
     private static long tempoExecucao;
 
-    public static void main(String[] args) throws Exception
+    public static void main(String[] args)
+        throws IllegalStateException, FileNotFoundException
     {
         String arquivo = (args.length > 0) ? args[0] : DEFAULT_DB;
         List<Pokemon> pokemon = new GerenciadorPokemons(arquivo).getPokemons();
@@ -95,70 +96,151 @@ class ArvoreAlvinegra<T extends Comparable<T> & Nomeavel>
 
     public void inserir(T x) throws IllegalStateException
     {
-        raiz = inserir(raiz, x);
-        raiz.cor = Cor.ALVO; // A raiz sempre deve ser ALVO (preto).
+        if (raiz == null) {
+            raiz = new No(x);
+        } else if (raiz.esq == null && raiz.dir == null) {
+            if (x.compareTo(raiz.elemento) < 0)
+                raiz.esq = new No(x);
+            else if (x.compareTo(raiz.elemento) > 0)
+                raiz.dir = new No(x);
+            else
+                throw new IllegalStateException("Elemento já está na árvore");
+        } else if (raiz.esq == null) {
+            if (x.compareTo(raiz.elemento) < 0) {
+                raiz.esq = new No(x);
+            } else if (x.compareTo(raiz.dir.elemento) < 0) {
+                raiz.esq = new No(raiz.elemento);
+                raiz.elemento = x;
+            } else if (x.compareTo(raiz.dir.elemento) > 0) {
+                raiz.esq = new No(raiz.elemento);
+                raiz.elemento = raiz.dir.elemento;
+                raiz.dir.elemento = x;
+            } else {
+                throw new IllegalStateException("Elemento já está na árvore");
+            }
+
+            raiz.esq.cor = raiz.dir.cor = Cor.ALVO;
+        } else if (raiz.dir == null) {
+            if (x.compareTo(raiz.elemento) > 0) {
+                raiz.dir = new No(x);
+
+            } else if (x.compareTo(raiz.esq.elemento) > 0) {
+                raiz.dir = new No(raiz.elemento);
+                raiz.elemento = x;
+
+            } else if (x.compareTo(raiz.esq.elemento) < 0) {
+                raiz.dir = new No(raiz.elemento);
+                raiz.elemento = raiz.esq.elemento;
+                raiz.esq.elemento = x;
+            } else {
+                throw new IllegalStateException("Elemento já está na árvore");
+            }
+
+            raiz.esq.cor = raiz.dir.cor = Cor.ALVO;
+        } else {
+            inserir(x, null, null, null, raiz);
+        }
+
+        raiz.cor = Cor.ALVO;
     }
 
-    private No inserir(No h, T x) throws IllegalStateException
+    private void inserir(T x, No bisavo, No avo, No pai, No h)
+        throws IllegalStateException
     {
-        if (h == null)
-            return new No(x);
+        if (h == null) {
+            if (x.compareTo(pai.elemento) < 0)
+                h = pai.esq = new No(x);
+            else
+                h = pai.dir = new No(x);
 
-        final int cmp = x.compareTo(h.elemento); // Resultado da comparação.
+            if (pai.cor == Cor.NEGRO)
+                balancear(bisavo, avo, pai, h);
+        } else {
+            // Achou um 4-nó: é preciso fragmetá-lo e reequilibrar a árvore.
+            if (h.esq != null && h.dir != null && h.esq.cor == Cor.NEGRO &&
+                h.dir.cor == Cor.NEGRO) {
+                h.cor = Cor.NEGRO;
+                h.esq.cor = h.dir.cor = Cor.ALVO;
 
-        if (cmp < 0)
-            h.esq = inserir(h.esq, x);
-        else if (cmp > 0)
-            h.dir = inserir(h.dir, x);
-        else
-            throw new IllegalStateException("Elemento já está na árvore");
-
-        // Balanceamento
-        if (isNegro(h.dir) && !isNegro(h.esq))
-            h = rotacionarParaEsquerda(h);
-        if (isNegro(h.esq) && isNegro(h.esq.esq))
-            h = rotacionarParaDireita(h);
-        if (isNegro(h.esq) && isNegro(h.dir))
-            recolorir(h);
-
-        return h;
+                if (h == raiz)
+                    h.cor = Cor.ALVO;
+                else if (pai.cor == Cor.NEGRO)
+                    balancear(bisavo, avo, pai, h);
+            }
+            if (x.compareTo(h.elemento) < 0)
+                inserir(x, avo, pai, h, h.esq);
+            else if (x.compareTo(h.elemento) > 0)
+                inserir(x, avo, pai, h, h.dir);
+            else
+                throw new IllegalStateException("Elemento já está na árvore");
+        }
     }
 
-    private boolean isNegro(No x)
+    private void balancear(No bisavo, No avo, No pai, No h)
     {
-        return x != null && x.cor == Cor.NEGRO;
+        // Se o pai tambem é preto, reequilibrar a árvore, rotacionando o avô.
+        if (pai.cor == Cor.NEGRO) {
+            // Quatro tipos de reequilíbrios e acoplamento.
+            if (pai.elemento.compareTo(avo.elemento) > 0) {
+                if (h.elemento.compareTo(pai.elemento) > 0)
+                    avo = rotacaoEsq(avo);
+                else
+                    avo = rotacaoDirEsq(avo);
+            } else {
+                if (h.elemento.compareTo(pai.elemento) < 0)
+                    avo = rotacaoDir(avo);
+                else
+                    avo = rotacaoEsqDir(avo);
+            }
+
+            if (bisavo == null)
+                raiz = avo;
+            else if (avo.elemento.compareTo(bisavo.elemento) < 0)
+                bisavo.esq = avo;
+            else
+                bisavo.dir = avo;
+
+            // Reestabelecer as cores apos a rotação.
+            avo.cor = avo.esq.cor = avo.dir.cor = Cor.ALVO;
+        }
     }
 
-    private No rotacionarParaEsquerda(No h)
+    private No rotacaoDir(No no)
     {
-        No x = h.dir;
-        h.dir = x.esq;
-        x.esq = h;
-        x.cor = h.cor;
-        h.cor = Cor.NEGRO;
-        return x;
+        No noEsq = no.esq;
+        No noEsqDir = noEsq.dir;
+
+        noEsq.dir = no;
+        no.esq = noEsqDir;
+
+        return noEsq;
     }
 
-    private No rotacionarParaDireita(No h)
+    private No rotacaoEsq(No no)
     {
-        No x = h.esq;
-        h.esq = x.dir;
-        x.dir = h;
-        x.cor = h.cor;
-        h.cor = Cor.NEGRO;
-        return x;
+        No noDir = no.dir;
+        No noDirEsq = noDir.esq;
+
+        noDir.esq = no;
+        no.dir = noDirEsq;
+        return noDir;
     }
 
-    private void recolorir(No h)
+    private No rotacaoDirEsq(No no)
     {
-        h.cor = Cor.NEGRO;
-        h.esq.cor = Cor.ALVO;
-        h.dir.cor = Cor.ALVO;
+        no.dir = rotacaoDir(no.dir);
+        return rotacaoEsq(no);
+    }
+
+    private No rotacaoEsqDir(No no)
+    {
+        no.esq = rotacaoEsq(no.esq);
+        return rotacaoDir(no);
     }
 
     public boolean pesquisar(String nome)
     {
-        // Linha contendo a sequência de ponteiros
+        // Linha contendo a sequência de ponteiros.
         StringBuilder caminho = new StringBuilder("raiz ");
         boolean res = pesquisar(nome, raiz, caminho);
         System.out.print(caminho.toString());
