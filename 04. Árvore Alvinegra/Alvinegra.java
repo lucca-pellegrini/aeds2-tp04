@@ -189,7 +189,7 @@ class ArvoreAlvinegra<T extends Comparable<T> & Nomeavel>
             if (pai.cor == Cor.NEGRO)
                 balancear(bisavo, avo, pai, h);
         } else {
-            // Achou um 4-nó: é preciso fragmetá-lo e reequilibrar a árvore.
+            // Achou um 4-nó: é preciso fragmentá-lo e reequilibrar a árvore.
             if (h.esq != null && h.dir != null && h.esq.cor == Cor.NEGRO &&
                 h.dir.cor == Cor.NEGRO) {
                 h.cor = Cor.NEGRO;
