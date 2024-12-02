@@ -112,58 +112,137 @@ class ArvoreAlvinegra<T extends Comparable<T> & Nomeavel>
             return noEsq;
         }
 
-        public void recolorir()
+        public No rotacaoDirEsq()
         {
-            this.cor = Cor.NEGRO;
-            this.esq.cor = Cor.ALVO;
-            this.dir.cor = Cor.ALVO;
+            this.dir = this.dir.rotacaoDir();
+            return this.rotacaoEsq();
+        }
+
+        public No rotacaoEsqDir()
+        {
+            this.esq = this.esq.rotacaoEsq();
+            return this.rotacaoDir();
         }
 
         public boolean isNegro()
         {
             return this.cor == Cor.NEGRO;
         }
-
-        public boolean isAlvo()
-        {
-            return this.cor == Cor.ALVO;
-        }
     }
 
     public void inserir(T x) throws IllegalStateException
     {
-        raiz = inserir(raiz, x);
-        raiz.cor = Cor.ALVO; // A raiz sempre deve ser ALVO (preto).
+        if (raiz == null) {
+            raiz = new No(x);
+        } else if (raiz.esq == null && raiz.dir == null) {
+            if (x.compareTo(raiz.elemento) < 0)
+                raiz.esq = new No(x);
+            else if (x.compareTo(raiz.elemento) > 0)
+                raiz.dir = new No(x);
+            else
+                throw new IllegalStateException("Elemento já está na árvore");
+        } else if (raiz.esq == null) {
+            if (x.compareTo(raiz.elemento) < 0) {
+                raiz.esq = new No(x);
+            } else if (x.compareTo(raiz.dir.elemento) < 0) {
+                raiz.esq = new No(raiz.elemento);
+                raiz.elemento = x;
+            } else if (x.compareTo(raiz.dir.elemento) > 0) {
+                raiz.esq = new No(raiz.elemento);
+                raiz.elemento = raiz.dir.elemento;
+                raiz.dir.elemento = x;
+            } else {
+                throw new IllegalStateException("Elemento já está na árvore");
+            }
+
+            raiz.esq.cor = raiz.dir.cor = Cor.ALVO;
+        } else if (raiz.dir == null) {
+            if (x.compareTo(raiz.elemento) > 0) {
+                raiz.dir = new No(x);
+            } else if (x.compareTo(raiz.esq.elemento) > 0) {
+                raiz.dir = new No(raiz.elemento);
+                raiz.elemento = x;
+            } else if (x.compareTo(raiz.esq.elemento) < 0) {
+                raiz.dir = new No(raiz.elemento);
+                raiz.elemento = raiz.esq.elemento;
+                raiz.esq.elemento = x;
+            } else {
+                throw new IllegalStateException("Elemento já está na árvore");
+            }
+
+            raiz.esq.cor = raiz.dir.cor = Cor.ALVO;
+        } else {
+            inserir(x, null, null, null, raiz);
+        }
+
+        raiz.cor = Cor.ALVO;
     }
 
-    private No inserir(No h, T x) throws IllegalStateException
+    private void inserir(T x, No bisavo, No avo, No pai, No h)
+        throws IllegalStateException
     {
-        if (h == null)
-            return new No(x);
+        if (h == null) {
+            if (x.compareTo(pai.elemento) < 0)
+                h = pai.esq = new No(x, Cor.NEGRO);
+            else
+                h = pai.dir = new No(x, Cor.NEGRO);
 
-        final int cmp = x.compareTo(h.elemento); // Resultado da comparação.
+            if (pai.isNegro())
+                balancear(bisavo, avo, pai, h);
+        } else {
+            // Achou um 4-nó: é preciso fragmentá-lo e reequilibrar a árvore.
+            if (h.esq != null && h.dir != null && h.esq.isNegro() && h.dir.isNegro()) {
+                h.cor = Cor.NEGRO;
+                h.esq.cor = h.dir.cor = Cor.ALVO;
 
-        if (cmp < 0)
-            h.esq = inserir(h.esq, x);
-        else if (cmp > 0)
-            h.dir = inserir(h.dir, x);
-        else
-            throw new IllegalStateException("Elemento já está na árvore");
+                if (h == raiz)
+                    h.cor = Cor.ALVO;
+                else if (pai.isNegro())
+                    balancear(bisavo, avo, pai, h);
+            }
 
-        // Balanceamento
-        if (h.dir != null && h.dir.isNegro() && (h.esq == null || h.esq.isAlvo()))
-            h = h.rotacaoEsq();
-        if (h.esq != null && h.esq.isNegro() && h.esq.esq != null && h.esq.esq.isNegro())
-            h = h.rotacaoDir();
-        if (h.esq != null && h.esq.isNegro() && h.dir != null && h.dir.isNegro())
-            h.recolorir();
+            if (x.compareTo(h.elemento) < 0)
+                inserir(x, avo, pai, h, h.esq);
+            else if (x.compareTo(h.elemento) > 0)
+                inserir(x, avo, pai, h, h.dir);
+            else
+                throw new IllegalStateException("Elemento já está na árvore");
+        }
+    }
 
-        return h;
+    private void balancear(No bisavo, No avo, No pai, No h)
+    {
+        // Se o pai também é negro, reequilibrar a árvore, rotacionando o avô.
+        if (pai.isNegro()) {
+            // Quatro tipos de reequilíbrios e acoplamento.
+            if (pai.elemento.compareTo(avo.elemento) > 0) {
+                if (h.elemento.compareTo(pai.elemento) > 0)
+                    avo = avo.rotacaoEsq();
+                else
+                    avo = avo.rotacaoDirEsq();
+            } else {
+                if (h.elemento.compareTo(pai.elemento) < 0)
+                    avo = avo.rotacaoDir();
+                else
+                    avo = avo.rotacaoEsqDir();
+            }
+
+            if (bisavo == null)
+                raiz = avo;
+            else if (avo.elemento.compareTo(bisavo.elemento) < 0)
+                bisavo.esq = avo;
+            else
+                bisavo.dir = avo;
+
+            // Recolorir após a rotação.
+            avo.cor = Cor.ALVO;
+            avo.esq.cor = avo.dir.cor = Cor.NEGRO;
+        }
     }
 
     public boolean pesquisar(String nome)
     {
-        // Linha contendo a sequência de ponteiros
+        // Linha contendo a sequência de caminhamentos.
         StringBuilder caminho = new StringBuilder("raiz ");
         boolean res = pesquisar(nome, raiz, caminho);
         System.out.print(caminho.toString());
@@ -256,7 +335,7 @@ class Pokemon implements Comparable<Pokemon>, Cloneable, Nomeavel
         this.height = 0.0; // Altura padrão.
         this.captureRate = 0; // Taxa de captura padrão.
         this.isLegendary = false; // Não é lendário por padrão.
-        this.captureDate = LocalDate.MIN; // Data nula (01/01/-9999999…)
+        this.captureDate = LocalDate.MIN; // Data nula (01/01/-9999999…).
     }
 
     public Pokemon(int id, int generation, String name, String description,
@@ -326,9 +405,9 @@ class Pokemon implements Comparable<Pokemon>, Cloneable, Nomeavel
 
         // Adiciona data de captura.
         String[] membrosData = s2[5].split("/");
-        captureDate = LocalDate.of(Integer.parseInt(membrosData[2]), // ano
-                                   Integer.parseInt(membrosData[1]), // mês
-                                   Integer.parseInt(membrosData[0])); // dia
+        captureDate = LocalDate.of(Integer.parseInt(membrosData[2]), // ano.
+                                   Integer.parseInt(membrosData[1]), // mês.
+                                   Integer.parseInt(membrosData[0])); // dia.
     }
 
     public void imprimir()
