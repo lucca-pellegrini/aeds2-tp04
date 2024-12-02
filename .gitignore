@@ -1,0 +1,14 @@
+*/lista_sequencial
+*/pilha_sequencial
+*/fila_circular_sequencial
+*/lista_flexivel
+*/pilha_flexivel
+
+compile_commands.json
+
+.cache/
+*.o
+*.class
+pubs.*
+teste.*
+*.txt
