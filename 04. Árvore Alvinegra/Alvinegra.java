@@ -118,6 +118,16 @@ class ArvoreAlvinegra<T extends Comparable<T> & Nomeavel>
             this.esq.cor = Cor.ALVO;
             this.dir.cor = Cor.ALVO;
         }
+
+        public boolean isNegro()
+        {
+            return this.cor == Cor.NEGRO;
+        }
+
+        public boolean isAlvo()
+        {
+            return this.cor == Cor.ALVO;
+        }
     }
 
     public void inserir(T x) throws IllegalStateException
@@ -141,19 +151,14 @@ class ArvoreAlvinegra<T extends Comparable<T> & Nomeavel>
             throw new IllegalStateException("Elemento já está na árvore");
 
         // Balanceamento
-        if (isNegro(h.dir) && !isNegro(h.esq))
+        if (h.dir != null && h.dir.isNegro() && (h.esq == null || h.esq.isAlvo()))
             h = h.rotacaoEsq();
-        if (isNegro(h.esq) && isNegro(h.esq.esq))
+        if (h.esq != null && h.esq.isNegro() && h.esq.esq != null && h.esq.esq.isNegro())
             h = h.rotacaoDir();
-        if (isNegro(h.esq) && isNegro(h.dir))
+        if (h.esq != null && h.esq.isNegro() && h.dir != null && h.dir.isNegro())
             h.recolorir();
 
         return h;
-    }
-
-    private boolean isNegro(No x)
-    {
-        return x != null && x.cor == Cor.NEGRO;
     }
 
     public boolean pesquisar(String nome)
