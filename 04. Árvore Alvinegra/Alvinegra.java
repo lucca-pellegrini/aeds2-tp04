@@ -92,6 +92,39 @@ class ArvoreAlvinegra<T extends Comparable<T> & Nomeavel>
             this.esq = esq;
             this.dir = dir;
         }
+
+        public No rotacaoDir()
+        {
+            No noEsq = this.esq;
+            No noEsqDir = noEsq.dir;
+
+            noEsq.dir = this;
+            this.esq = noEsqDir;
+
+            return noEsq;
+        }
+
+        public No rotacaoEsq()
+        {
+            No noDir = this.dir;
+            No noDirEsq = noDir.esq;
+
+            noDir.esq = this;
+            this.dir = noDirEsq;
+            return noDir;
+        }
+
+        public No rotacaoDirEsq()
+        {
+            this.dir = this.dir.rotacaoDir();
+            return this.rotacaoEsq();
+        }
+
+        public No rotacaoEsqDir()
+        {
+            this.esq = this.esq.rotacaoEsq();
+            return this.rotacaoDir();
+        }
     }
 
     public void inserir(T x) throws IllegalStateException
@@ -183,14 +216,14 @@ class ArvoreAlvinegra<T extends Comparable<T> & Nomeavel>
             // Quatro tipos de reequilíbrios e acoplamento.
             if (pai.elemento.compareTo(avo.elemento) > 0) {
                 if (h.elemento.compareTo(pai.elemento) > 0)
-                    avo = rotacaoEsq(avo);
+                    avo = avo.rotacaoEsq();
                 else
-                    avo = rotacaoDirEsq(avo);
+                    avo = avo.rotacaoDirEsq();
             } else {
                 if (h.elemento.compareTo(pai.elemento) < 0)
-                    avo = rotacaoDir(avo);
+                    avo = avo.rotacaoDir();
                 else
-                    avo = rotacaoEsqDir(avo);
+                    avo = avo.rotacaoEsqDir();
             }
 
             if (bisavo == null)
@@ -203,39 +236,6 @@ class ArvoreAlvinegra<T extends Comparable<T> & Nomeavel>
             // Reestabelecer as cores apos a rotação.
             avo.cor = avo.esq.cor = avo.dir.cor = Cor.ALVO;
         }
-    }
-
-    private No rotacaoDir(No no)
-    {
-        No noEsq = no.esq;
-        No noEsqDir = noEsq.dir;
-
-        noEsq.dir = no;
-        no.esq = noEsqDir;
-
-        return noEsq;
-    }
-
-    private No rotacaoEsq(No no)
-    {
-        No noDir = no.dir;
-        No noDirEsq = noDir.esq;
-
-        noDir.esq = no;
-        no.dir = noDirEsq;
-        return noDir;
-    }
-
-    private No rotacaoDirEsq(No no)
-    {
-        no.dir = rotacaoDir(no.dir);
-        return rotacaoEsq(no);
-    }
-
-    private No rotacaoEsqDir(No no)
-    {
-        no.esq = rotacaoEsq(no.esq);
-        return rotacaoDir(no);
     }
 
     public boolean pesquisar(String nome)
