@@ -551,11 +551,12 @@ Lista *lista_new(void)
 
 void lista_free(Lista *lst)
 {
-	for (Celula *atual = lst->primeiro, *prox = lst->primeiro->prox; atual; prox = prox->prox) {
+	Celula *atual = lst->primeiro;
+	while (atual) {
+		Celula *prox = atual->prox;
 		celula_free(atual);
 		atual = prox;
 	}
-
 	free(lst);
 }
 
@@ -655,10 +656,9 @@ int main(int argc, char **argv)
 	free(input); // Libera o buffer dinâmico de entrada.
 
 	// Computa tempo de execução em segundos + nanossegundos.
-	tempo_execucao = (struct timespec){
-		.tv_sec = tempo_final.tv_sec - tempo_inicial.tv_sec,
-		.tv_nsec = tempo_final.tv_nsec - tempo_inicial.tv_nsec
-	};
+	tempo_execucao =
+		(struct timespec){ .tv_sec = tempo_final.tv_sec - tempo_inicial.tv_sec,
+				   .tv_nsec = tempo_final.tv_nsec - tempo_inicial.tv_nsec };
 
 	// Salva os resultados no log.
 	if (!(log = fopen(LOG, "w"))) { // Verifica erro ao abrir arquivo.
