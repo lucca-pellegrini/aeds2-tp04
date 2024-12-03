@@ -19,6 +19,9 @@ JAVAC      := javac
 JAVAFLAGS  :=
 JAVACFLAGS := -Xlint -Xdiags:verbose -g
 
+# Comando do Valgrind para detectar vazamentos de memória.
+CHECKLEAKSCMD := valgrind --leak-check=full --log-file=valgrind_report.txt
+
 # Como mostrar diferenças entre a saída do programa e a saída esperada.
 DIFF := $(shell if command -v colordiff >/dev/null 2>&1; then echo colordiff; else echo diff; fi)
 
@@ -33,7 +36,7 @@ all: $(BIN)
 .PHONY: all clean test testc testjava
 
 testc: $(CBIN)
-	$(CBIN) $(DB) < $(INPUT) > $(TEST)
+	$(CHECKLEAKSCMD) $(CBIN) $(DB) < $(INPUT) > $(TEST)
 	@$(DIFF) --report-identical-files --strip-trailing-cr $(OUTPUT) $(TEST)
 
 testjava: $(JAVABIN)
