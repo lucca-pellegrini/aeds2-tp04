@@ -47,7 +47,8 @@ public class HashDiretaRehash
 
         // Salva o log.
         try (PrintStream log = new PrintStream(LOG)) {
-            log.println(MATRICULA + "\t" + tempoExecucao + "\t" + Tabela.getNumComparacoes());
+            log.println(MATRICULA + "\t" + tempoExecucao + "\t" +
+                        Tabela.getNumComparacoes());
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -68,7 +69,7 @@ class Tabela<T extends Comparable<T> & Nomeavel>
 
     private static int numComparacoes = 0; // Para contar comparações.
 
-	// É preciso receber a classe de T como parâmetro por reflexão para
+    // É preciso receber a classe de T como parâmetro por reflexão para
     // podermos alocar um arranjo estático de tipo genérico. Trata-se de uma
     // limitação da JVM.
     public Tabela(Class<T> clazz)
@@ -76,8 +77,7 @@ class Tabela<T extends Comparable<T> & Nomeavel>
         this(clazz, 21); // Valores padrão do enunciado.
     }
 
-    @SuppressWarnings("unchecked")
-    private Tabela(Class<T> clazz, int capacidade)
+    @SuppressWarnings("unchecked") private Tabela(Class<T> clazz, int capacidade)
     {
         tamTab = capacidade;
         tab = (T[])Array.newInstance(clazz, capacidade);
@@ -143,13 +143,15 @@ class Tabela<T extends Comparable<T> & Nomeavel>
         return acc % tamTab;
     }
 
-    public static int getNumComparacoes() {
-		return numComparacoes;
-	}
+    public static int getNumComparacoes()
+    {
+        return numComparacoes;
+    }
 
-	public static void setNumComparacoes(int numComparacoes) {
-		Tabela.numComparacoes = numComparacoes;
-	}
+    public static void setNumComparacoes(int numComparacoes)
+    {
+        Tabela.numComparacoes = numComparacoes;
+    }
 }
 
 class GerenciadorPokemons
