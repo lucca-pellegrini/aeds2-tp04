@@ -686,8 +686,8 @@ int main(int argc, char **argv)
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tempo_final); // Mede tempo final.
 
-	avl_free(arvore); // Libera a arvore.
 	free(input); // Libera o buffer dinâmico de entrada.
+	avl_free(arvore); // Libera a árvore.
 
 	// Computa tempo de execução em segundos + nanossegundos.
 	tempo_execucao =
