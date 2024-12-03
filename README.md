@@ -1,7 +1,7 @@
 # Trabalho Prático 4
 
 Aqui se encontrará o quarto trabalho prático de Algoritmos e Estruturas de
-Dados 2 (1610100) de 2024/2 (quando eu terminar).
+Dados 2 (1610100) de 2024/2.
 
 ## Resultados
 
