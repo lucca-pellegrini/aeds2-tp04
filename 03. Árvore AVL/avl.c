@@ -230,6 +230,13 @@ void imprimir(Pokemon *restrict const p)
 	       p->capture_date.d, p->capture_date.m, p->capture_date.y);
 }
 
+// Compara Pokémon a partir do nome.
+int pokemon_compara(Pokemon *restrict const p1, Pokemon *restrict const p2)
+{
+	++num_comparacoes;
+	return strcmp(p1->name, p2->name);
+}
+
 // Aloca um Pokémon a partir de uma string.
 Pokemon *pokemon_from_str(char *str)
 {
@@ -491,7 +498,7 @@ static const char *type_to_string(PokeType type)
 ArvoreAVL *avl_new(void)
 {
 	ArvoreAVL *res = malloc(sizeof(*res));
-	memset(res, 0, sizeof(*res));
+	*res = (ArvoreAVL){ 0 };
 	return res;
 }
 
@@ -500,6 +507,23 @@ void avl_free(ArvoreAVL *avl)
 	if (avl)
 		no_free(avl->raiz);
 	free(avl);
+}
+
+static No *no_new(Pokemon *x)
+{
+	No *res = malloc(sizeof(*res));
+	*res = (No){ .elemento = x };
+	return res;
+}
+
+static void no_free(No *cel)
+{
+	if (cel) {
+		no_free(cel->dir);
+		no_free(cel->esq);
+		pokemon_free(cel->elemento);
+		free(cel);
+	}
 }
 
 void avl_inserir(ArvoreAVL *avl, Pokemon *x)
@@ -519,6 +543,34 @@ static No *avl_inserir_rec(No *no, Pokemon *x)
 		exit(EXIT_FAILURE);
 
 	return balancear(no);
+}
+
+bool avl_pesquisar(ArvoreAVL *avl, char *nome)
+{
+	printf("%s\nraiz ", nome);
+	return avl_pesquisar_rec(avl->raiz, nome);
+}
+
+static bool avl_pesquisar_rec(No *no, char *nome)
+{
+	bool res = false;
+
+	if (no) {
+		int cmp = strcmp(nome, no->elemento->name);
+		++num_comparacoes;
+
+		if (!cmp) {
+			res = true;
+		} else if (cmp < 0) {
+			fputs("esq ", stdout);
+			res = avl_pesquisar_rec(no->esq, nome);
+		} else {
+			fputs("dir ", stdout);
+			res = avl_pesquisar_rec(no->dir, nome);
+		}
+	}
+
+	return res;
 }
 
 static No *balancear(No *no)
@@ -572,6 +624,17 @@ static No *rotacionar_esq(No *no)
 	return dir;
 }
 
+static long long get_nivel(No *no)
+{
+	return no ? no->nivel : 0;
+}
+
+static void set_nivel(No *no)
+{
+	long long nesq = get_nivel(no->esq), ndir = get_nivel(no->dir);
+	no->nivel = 1 + (nesq > ndir ? nesq : ndir);
+}
+
 /// Programa principal. ///////////////////////////////////////////////////////
 
 #define NUM_PK 801 // Número máximo de Pokémon no CSV.
@@ -618,14 +681,8 @@ int main(int argc, char **argv)
 	// Lê os nomes para buscar na arvore.
 	clock_gettime(CLOCK_MONOTONIC, &tempo_inicial); // Mede tempo inicial.
 	while (getline(&input, &tam_input, stdin) != -1 && strcmp(input, "FIM\n")) {
-		size_t pos;
 		*strchr(input, '\n') = '\0';
-		printf("=> %s: ", input);
-		pos = avl_pesquisar(arvore, input);
-		if (pos == SIZE_MAX)
-			puts("NAO");
-		else
-			printf("(Posicao: %ju) SIM\n", pos);
+		puts(avl_pesquisar(arvore, input) ? "SIM" : "NAO");
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tempo_final); // Mede tempo final.
 
