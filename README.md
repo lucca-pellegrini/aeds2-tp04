@@ -1,12 +1,11 @@
-# Trabalho Prático 4 (Em Progresso)
+# Trabalho Prático 4
 
 Aqui se encontrará o quarto trabalho prático de Algoritmos e Estruturas de
 Dados 2 (1610100) de 2024/2 (quando eu terminar).
 
 ## Resultados
 
-~A maioria das implementações tem notas de 100% no Verde, com as seguintes
-exceções:~
+Todos os exercícios resultaram em corretude de 100% segundo o Verde.
 
 ## Como testar
 
